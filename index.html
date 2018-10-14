@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>Structure Number Puzzle Solver</title>
+<style>
+	body { background:#333; color:lime }
+	td { text-align:center }
+	#row0 td { width:70px }
+	input { text-align:center; width:90%; letter-spacing:2px }
+	b { color:red }
+</style>
+</head><body>
+
+<table>
+	<tr id="row0"><td></td></tr>
+	<tr id="row1"></tr>
+	<tr id="row2"><td></td></tr>
+</table>
+
+<hr>
+
+<button onclick="lessnum()">Less Numbers</button> <button onclick="morenum()">More Numbers</button><br><br><button onclick="solve()">Find Solutions</button>
+
+<hr>
+
+<div id="solutions"></div>
+
+<script>
+"use strict";
+
+var nums = 0;
+
+function lessnum() {
+	if (nums <= 2) return;
+
+	let tr = document.getElementById( (nums%2) ? "row1" : "row2" );
+	tr.removeChild(tr.lastChild);
+
+	let tr0 = document.getElementById("row0");
+	tr0.removeChild(tr0.lastChild);
+
+	nums--;
+}
+function morenum(v="") {
+	nums++;
+	let tr = document.getElementById( (nums%2) ? "row1" : "row2" );
+	let td = document.createElement("td");
+	td.colSpan = 2;
+	let input = document.createElement("input");
+	input.maxLength = 10;
+	input.tabIndex = nums;
+	input.value = v;
+	td.appendChild(input);
+	tr.appendChild(td);
+
+	document.getElementById("row0").appendChild( document.createElement("td") );
+}
+
+
+function get_num(input) {
+	let val = input.value.trim();
+	if ( val === "" || /[^0-9]/.test(val) ) throw null;
+	val = +val;
+	if (!val) throw null;
+	return val;
+}
+
+function get_numbers() {
+	let inputs1 = [ ...document.getElementById("row1").getElementsByTagName("input") ];
+	let inputs2 = [ ...document.getElementById("row2").getElementsByTagName("input") ];
+
+	let numbers = [];
+	while(1) {
+		if (!inputs1.length) break;
+		let val = get_num(inputs1.shift());
+		numbers.push(val);
+
+		if (!inputs2.length) break;
+		val = get_num(inputs2.shift());
+		numbers.push(val);
+	}
+
+	return numbers;
+}
+
+function* factors(num) {
+	let i = Math.floor(Math.sqrt(num));
+	if (i*i === num) { yield i; i--; }
+	for (; i > 0; i--) {
+		let j = num / i;
+		if (j !== Math.floor(j)) continue;
+		yield j;
+		yield i;
+	}
+}
+
+function solve() {
+	let numbers;
+	let found = false;
+
+	document.getElementById("solutions").innerHTML = "";
+
+	try {
+		numbers = get_numbers();
+	} catch(e) { return; }
+
+	for (let f of factors(numbers[0]))
+		found |= solve1(numbers, f);
+
+	if (!found)
+		document.getElementById("solutions").innerHTML += "<b>NO SOLUTIONS</b>";
+	else
+		document.getElementById("solutions").innerHTML += "<b>DONE</b>";
+}
+
+function solve1(numbers, f) {
+	let solution = [f];
+
+	for (let i=0; i<numbers.length; i++) {
+		let nxt = numbers[i] / f;
+		if (nxt != Math.floor(nxt)) return false;
+		solution.push(nxt);
+		f = nxt;
+	}
+
+	document.getElementById("solutions").innerHTML += solution.join(", ") + "<br>";
+	return true;
+}
+
+
+for (let i=0; i<5; i++) morenum();
+</script>
+
+</body></html>
